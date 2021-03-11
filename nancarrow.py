@@ -4,9 +4,9 @@ import sys
 import itertools
 import threading
 
-from alex.chord import *
-from alex.utilities import *
-from alex.rand import *
+from pyalex.chord import *
+from pyalex.utilities import *
+from pyalex.rand import *
 
 import scamp
 

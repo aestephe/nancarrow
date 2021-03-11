@@ -4,9 +4,9 @@ import sys
 import itertools
 import threading
 
-from alex.chord import *
-from alex.utilities import *
-from alex.rand import *
+from pyalex.chord import *
+from pyalex.utilities import *
+from pyalex.rand import *
 
 import scamp
 
@@ -299,7 +299,7 @@ def triads_interruption(inst1, inst2, chords, voice_manager, chord_index_seed, n
 				length = lengths[i % len(lengths)]
 				midi = [p.midi_number + 24 - 1 for p in current_chord.pitches if p.overtone_class in [3, 5]]
 				midi.extend([p.midi_number + 36 - 1 for p in current_chord.pitches if p.overtone_class in [1]])
-				inst2.play_chord(midi, 0.2, 0.125, "staccato")		
+				inst2.play_chord(midi, 0.5, 0.125, "staccato")		
 				length -= 0.125
 				scamp.wait(length)
 
