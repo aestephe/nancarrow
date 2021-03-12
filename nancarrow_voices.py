@@ -265,15 +265,10 @@ def repeated_chords(inst, chords, phrase_lengths, voice_manager, length_multipli
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def triads_interruption(inst1, inst2, chords, voice_manager, chord_index_seed, nbr_chords, play_loud_chord = True):
+def triads_interruption(inst1, inst2, chords, voice_manager, 
+						chord_indices, play_loud_chord = True):
 
 	my_id = VoiceId(triads_interruption.__name__, 0)
-
-	chord_index_rg = RandomizerGroup(nbr_randomizers = 2,
-									output_range = [0, len(chords) - 1],
-									ban_repeat_average_value = True,
-									seed_value = chord_index_seed)
-	selected_chord_indices = []
 
 	did_play = False
 
@@ -283,27 +278,31 @@ def triads_interruption(inst1, inst2, chords, voice_manager, chord_index_seed, n
 
 		if can_play:
 
-			if play_loud_chord and not ("triads" in voice_manager.previous_voices) and not (voice_manager.previous_voices[1] == "octaves"):
-				inst1.play_chord([p.midi_number for p in chords[chord_index_seed].pitches if p.overtone_class in [1, 3, 5]], 
+			if play_loud_chord and not (triads.__name__ in voice_manager.previous_voices) and not (voice_manager.previous_voices[1] == octaves.__name__):
+				inst1.play_chord([p.midi_number for p in chords[chord_indices[0]].pitches if p.overtone_class in [1, 3, 5]], 
 												1.2, 0.125, "staccato")		
 				scamp.wait(1.0)
 
-			lengths = [0.33, 0.5, 0.33, 0.33, 0.5, 0.33, 0.5, 0.33]
+			lengths = [0.25, 0.5, 0.25, 0.5, 0.25]
 
 			i = -1
-			while i < nbr_chords:
+
+			while i < len(chord_indices) - 1:
+
 				i += 1
-				selected_chord_index = chord_index_rg.get_average_value()
+				selected_chord_index = chord_indices[i]
 				current_chord = chords[selected_chord_index]
 				selected_chord_indices.append(selected_chord_index)
+
 				length = lengths[i % len(lengths)]
+
 				midi = [p.midi_number + 24 - 1 for p in current_chord.pitches if p.overtone_class in [3, 5]]
 				midi.extend([p.midi_number + 36 - 1 for p in current_chord.pitches if p.overtone_class in [1]])
-				inst2.play_chord(midi, 0.5, 0.125, "staccato")		
-				length -= 0.125
-				scamp.wait(length)
 
-			print(selected_chord_indices)
+				inst2.play_chord(midi, 0.7, 0.125, "staccato")		
+				length -= 0.125
+
+				scamp.wait(length)
 
 			voice_manager.leave_queue(my_id)
 
@@ -313,3 +312,64 @@ def triads_interruption(inst1, inst2, chords, voice_manager, chord_index_seed, n
 
 			scamp.wait(0.1)
 
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# def triads_interruption_randomized(inst1, inst2, chords, voice_manager, chord_index_seed, nbr_chords, play_loud_chord = True):
+
+# 	my_id = VoiceId(triads_interruption.__name__, 0)
+
+# 	chord_index_rg = RandomizerGroup(nbr_randomizers = 2,
+# 									output_range = [0, len(chords) - 1],
+# 									ban_repeat_average_value = False,
+# 									seed_value = chord_index_seed)
+# 	selected_chord_indices = []
+
+# 	did_play = False
+
+# 	while not did_play:
+
+# 		can_play = voice_manager.request_permission(my_id)
+
+# 		if can_play:
+
+# 			if play_loud_chord and not (triads.__name__ in voice_manager.previous_voices) and not (voice_manager.previous_voices[1] == octaves.__name__):
+# 				inst1.play_chord([p.midi_number for p in chords[chord_index_seed].pitches if p.overtone_class in [1, 3, 5]], 
+# 												1.2, 0.125, "staccato")		
+# 				scamp.wait(1.0)
+
+# 			lengths = [0.25, 0.5, 0.25, 0.5, 0.25]
+
+# 			selected_chord_indices = []
+# 			chords_played = 0
+# 			i = -1
+
+# 			while i < nbr_chords - 1:
+
+# 				i += 1
+# 				selected_chord_index = chord_index_rg.get_average_value()
+# 				current_chord = chords[selected_chord_index]
+# 				selected_chord_indices.append(selected_chord_index)
+
+# 				length = lengths[i % len(lengths)]
+
+# 				midi = [p.midi_number + 24 - 1 for p in current_chord.pitches if p.overtone_class in [3, 5]]
+# 				midi.extend([p.midi_number + 36 - 1 for p in current_chord.pitches if p.overtone_class in [1]])
+# 				# midi = [p.midi_number + 36 - 1 for p in current_chord.pitches if p.overtone_class in [1]]
+
+# 				inst2.play_chord(midi, 0.7, 0.125, "staccato")		
+# 				length -= 0.125
+
+# 				chords_played += 1
+
+# 				scamp.wait(length)
+
+# 			print(selected_chord_indices)
+# 			print(chords_played)
+
+# 			voice_manager.leave_queue(my_id)
+
+# 			did_play = True
+
+# 		else:
+
+# 			scamp.wait(0.1)

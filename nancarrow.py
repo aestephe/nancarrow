@@ -83,7 +83,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(160)
+# s.fast_forward_in_beats(60)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,22 +104,36 @@ s.wait(18)
 
 # begin waiting then firing the interruptions
 
-pre_interruption_waits = [24.2137805625, 19.5, 13.286025, 9.8415, 7.29, 5.4, 4]
-interruption_chord_index_seeds = [0, 3, 7, 11, 7, 3, 0]
-interruption_nbrs_chords = [17, 15, 13, 11, 8, 8, 5]
-i = -1
-for beats, index, nbr in zip(pre_interruption_waits, interruption_chord_index_seeds, interruption_nbrs_chords):
+interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3, 6],
+					[3, 2, 7, 6, 6, 4, 5, 3, 3, 7, 6, 9, 10, 8, 3],
+					[7, 0, 8, 9, 6, 6, 2, 1, 8, 7, 5, 7, 5],
+					[11, 4, 8, 8, 7, 9, 4, 2, 2, 7, 5],
+					[7, 0, 8, 5, 4, 6, 4, 9],
+					[3, 4, 7, 5, 9, 7, 7, 7],
+					[0, 3, 7, 4, 5]]
 
-	i += 1
+# ######### for randomized interruptions: ######################################
+# pre_interruption_waits = [24.2137805625, 19.5, 13.286025, 9.8415, 7.29, 5.4, 4]
+# interruption_chord_index_seeds = [0, 3, 7, 11, 7, 3, 0]
+# interruption_nbrs_chords = [17, 15, 13, 11, 8, 8, 5]
+#
+# for beats, index, nbr in zip(pre_interruption_waits, 
+# 							interruption_chord_index_seeds, 
+# 							interruption_nbrs_chords):
+
+for i in range(7):
 
 	s.wait(beats)
 
-	print("----------- " + str(i + 1) + " -----------")
+	print("----------- " + str(i) + " -----------")
 
 	vm.enter_vip_mode(triads_interruption.__name__)
-	triads_interruption(inst1 = pianoteq_triads, inst2 = pianoteq_triads_detuned, 
-						chords = chords, voice_manager = vm,
-						chord_index_seed = index, nbr_chords = nbr)
+	triads_interruption(
+						inst1 = pianoteq_triads, 
+						inst2 = pianoteq_triads_detuned, 
+						chords = chords, 
+						voice_manager = vm,
+						chord_indices = interruption_chord_indices[i])
 	vm.exit_vip_mode()
 
 	update_length_multipliers(lmm)
@@ -143,9 +157,11 @@ vm.set_dequeue_times([0.66, 0.66, 1.0])
 s.wait(12.5)
 
 vm.enter_vip_mode("triads_interruption")
-triads_interruption(inst1 = pianoteq_triads, inst2 = pianoteq_triads_detuned, 
-					chords = chords, voice_manager = vm,
-					chord_index_seed = 3, nbr_chords = 13, play_loud_chord = False)
+triads_interruption(inst1 = pianoteq_triads, 
+					inst2 = pianoteq_triads_detuned, 
+					chords = chords, 
+					voice_manager = vm,
+					chord_indices = [3, 4, 3, 3, 7, 4, 9, 7, 7, 7, 4, 5, 7])
 vm.should_try_play = False
 vm.exit_vip_mode()
 s.wait_for_children_to_finish()
