@@ -4,18 +4,24 @@ import sys
 import itertools
 import threading
 
-from pyalex.chord import *
-from pyalex.utilities import *
+from pyalex.chord import Chord
+from pyalex.utilities import Utilities
 from pyalex.rand import *
 
 import scamp
 
-sys.path.append('.')
 from nancarrow_managers import *
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
-def triads(inst, chords, phrase_lengths, voice_manager, length_multiplier_manager, chord_index_seed = 0, phrase_length_index_seed = 0):
+def triads(
+		inst, 
+		chords, 
+		phrase_lengths, 
+		voice_manager, 
+		length_multiplier_manager, 
+		chord_index_seed = 0, 
+		phrase_length_index_seed = 0):
 
 	my_id = VoiceId(triads.__name__, threading.current_thread().ident)
 
@@ -50,9 +56,16 @@ def triads(inst, chords, phrase_lengths, voice_manager, length_multiplier_manage
 
 			scamp.wait(0.1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
-def grace_notes(inst, chords, phrase_lengths, voice_manager, length_multiplier_manager, chord_index_seed = 0, phrase_length_index_seed = 0):
+def grace_notes(
+			inst, 
+			chords, 
+			phrase_lengths, 
+			voice_manager, 
+			length_multiplier_manager, 
+			chord_index_seed = 0, 
+			phrase_length_index_seed = 0):
 
 	my_id = VoiceId(grace_notes.__name__, threading.current_thread().ident)
 
@@ -120,9 +133,16 @@ def grace_notes(inst, chords, phrase_lengths, voice_manager, length_multiplier_m
 
 				scamp.wait(0.1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
-def arpeggios(inst, chords, phrase_lengths, voice_manager, length_multiplier_manager, chord_index_seed = 0, phrase_length_index_seed = 0):
+def arpeggios(
+			inst, 
+			chords, 
+			phrase_lengths, 
+			voice_manager, 
+			length_multiplier_manager, 
+			chord_index_seed = 0, 
+			phrase_length_index_seed = 0):
 
 	my_id = VoiceId(arpeggios.__name__, threading.current_thread().ident)
 
@@ -185,9 +205,16 @@ def arpeggios(inst, chords, phrase_lengths, voice_manager, length_multiplier_man
 
 				scamp.wait(0.1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
-def octaves(inst, chords, phrase_lengths, voice_manager, length_multiplier_manager, chord_index_seed = 0, phrase_length_index_seed = 0):
+def octaves(
+			inst, 
+			chords, 
+			phrase_lengths, 
+			voice_manager, 
+			length_multiplier_manager, 
+			chord_index_seed = 0, 
+			phrase_length_index_seed = 0):
 
 	my_id = VoiceId(octaves.__name__, threading.current_thread().ident)
 
@@ -223,9 +250,16 @@ def octaves(inst, chords, phrase_lengths, voice_manager, length_multiplier_manag
 
 			scamp.wait(0.1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
-def repeated_chords(inst, chords, phrase_lengths, voice_manager, length_multiplier_manager, chord_index_seed = 0, phrase_length_index_seed = 0):
+def repeated_chords(
+				inst, 
+				chords, 
+				phrase_lengths, 
+				voice_manager, 
+				length_multiplier_manager, 
+				chord_index_seed = 0, 
+				phrase_length_index_seed = 0):
 
 	my_id = VoiceId(repeated_chords.__name__, threading.current_thread().ident)
 
@@ -263,10 +297,15 @@ def repeated_chords(inst, chords, phrase_lengths, voice_manager, length_multipli
 
 			scamp.wait(0.1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
-def triads_interruption(inst1, inst2, chords, voice_manager, 
-						chord_indices, play_loud_chord = True):
+def triads_interruption(
+					inst1, 
+					inst2, 
+					chords, 
+					voice_manager, 
+					chord_indices, 
+					play_loud_chord = True):
 
 	my_id = VoiceId(triads_interruption.__name__, 0)
 
@@ -278,12 +317,18 @@ def triads_interruption(inst1, inst2, chords, voice_manager,
 
 		if can_play:
 
-			if play_loud_chord and not (triads.__name__ in voice_manager.previous_voices) and not (voice_manager.previous_voices[1] == octaves.__name__):
+			if (play_loud_chord 
+				and not (triads.__name__ in voice_manager.previous_voices) 
+				and not (voice_manager.previous_voices[1] == octaves.__name__)):
 				inst1.play_chord([p.midi_number for p in chords[chord_indices[0]].pitches if p.overtone_class in [1, 3, 5]], 
 												1.2, 0.125, "staccato")		
 				scamp.wait(1.0)
 
-			lengths = [0.25, 0.5, 0.25, 0.5, 0.25]
+			lengths = []
+			if len(chord_indices) < 6:
+				lengths = [0.25, 0.5, 0.25, 0.25, 0.25]
+			else:
+				lengths = [0.25, 0.5, 0.25, 0.5, 0.25]
 
 			i = -1
 
@@ -292,7 +337,6 @@ def triads_interruption(inst1, inst2, chords, voice_manager,
 				i += 1
 				selected_chord_index = chord_indices[i]
 				current_chord = chords[selected_chord_index]
-				selected_chord_indices.append(selected_chord_index)
 
 				length = lengths[i % len(lengths)]
 
@@ -311,8 +355,6 @@ def triads_interruption(inst1, inst2, chords, voice_manager,
 		else:
 
 			scamp.wait(0.1)
-
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # def triads_interruption_randomized(inst1, inst2, chords, voice_manager, chord_index_seed, nbr_chords, play_loud_chord = True):
 

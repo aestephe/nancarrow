@@ -4,17 +4,15 @@ import sys
 import itertools
 import threading
 
-from pyalex.chord import *
-from pyalex.utilities import *
-from pyalex.rand import *
+from pyalex.chord import Chord
+from pyalex.utilities import Utilities
 
 import scamp
 
-sys.path.append('.')
 from nancarrow_managers import *
 from nancarrow_voices import *
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 def make_length_multiplier_manager(c = 1):
 
@@ -34,7 +32,7 @@ def update_length_multipliers(lmm):
 								  "repeated_chords" : LengthMultiplier.clone(lmm.get_length_multiplier("repeated_chords"), expon = 0.775),
 								  "triads" : LengthMultiplier.clone(lmm.get_length_multiplier("triads"), expon = 0.65) } )
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 chords = [Chord.from_string("27.0~27.0,1,1;55.0,5,1;58.0,3,1;61.0,7,1;76.0,17,1;78.0,19,1;81.0,11,1;84.0,27,1;86.0,15,1;89.0,9,1;92.0,21,1;95.0,13,1"),
 			Chord.from_string("31.0~31.0,1,1;50.0,3,1;59.0,5,1;65.0,7,1;69.0,9,1;75.0,13,1;78.0,15,1;82.0,19,1;85.0,11,1;88.0,27,1;92.0,17,1;96.0,21,1"),
@@ -56,8 +54,7 @@ vm.set_dequeue_times([2.6])
 
 lmm = make_length_multiplier_manager()
 
-s = scamp.Session()
-s.tempo = 112
+s = scamp.Session(tempo = 112)
 scamp.current_clock().synchronization_policy = "no synchronization"
 
 pianoteq_triads = s.new_midi_part("triads", midi_output_device = "to Max 1")
@@ -70,7 +67,7 @@ pianoteq_repeated_chords = s.new_midi_part("repeated_chords", midi_output_device
 pianoteq_field = s.new_midi_part("field", midi_output_device = "to Max 1")
 pianoteq_field_detuned = s.new_midi_part("field_detuned", midi_output_device = "to Max 2")
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 # reset the max patch
 
@@ -80,12 +77,12 @@ for m in range(21, 109):
 s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
 s.wait(1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(60)
+# s.fast_forward_to_time(100)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 # introduce each looping voice
 
@@ -100,40 +97,45 @@ s.wait(4)
 s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm, lmm])
 s.wait(18)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 # begin waiting then firing the interruptions
 
+pre_interruption_waits = [24.2, 19.5, 13.3, 9.8, 7.3, 5.4, 4, 3]
 interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3, 6],
 					[3, 2, 7, 6, 6, 4, 5, 3, 3, 7, 6, 9, 10, 8, 3],
 					[7, 0, 8, 9, 6, 6, 2, 1, 8, 7, 5, 7, 5],
 					[11, 4, 8, 8, 7, 9, 4, 2, 2, 7, 5],
 					[7, 0, 8, 5, 4, 6, 4, 9],
 					[3, 4, 7, 5, 9, 7, 7, 7],
-					[0, 3, 7, 4, 5]]
+					[0, 3, 7, 4, 5],
+					[3, 2, 7, 6, 6]]
+i = -1
 
-# ######### for randomized interruptions: ######################################
-# pre_interruption_waits = [24.2137805625, 19.5, 13.286025, 9.8415, 7.29, 5.4, 4]
+# -------- params for randomized interruptions: --------------
+#
 # interruption_chord_index_seeds = [0, 3, 7, 11, 7, 3, 0]
 # interruption_nbrs_chords = [17, 15, 13, 11, 8, 8, 5]
 #
 # for beats, index, nbr in zip(pre_interruption_waits, 
 # 							interruption_chord_index_seeds, 
 # 							interruption_nbrs_chords):
+#
 
-for i in range(7):
+for beats, indices in zip(pre_interruption_waits, interruption_chord_indices):
+
+	i += 1
 
 	s.wait(beats)
 
-	print("----------- " + str(i) + " -----------")
-
 	vm.enter_vip_mode(triads_interruption.__name__)
+	print("--> " + str(i) + ": " + str(indices))
 	triads_interruption(
 						inst1 = pianoteq_triads, 
 						inst2 = pianoteq_triads_detuned, 
 						chords = chords, 
 						voice_manager = vm,
-						chord_indices = interruption_chord_indices[i])
+						chord_indices = indices)
 	vm.exit_vip_mode()
 
 	update_length_multipliers(lmm)
@@ -143,31 +145,31 @@ for i in range(7):
 		vm.set_dequeue_times([1])
 	if i == 4:
 		vm.set_dequeue_times([0.66, 1.0, 0.66, 0.66, 1.0, 0.66])
-		vm.block_voice("grace_notes")
+		vm.block_voice(grace_notes.__name__)
 
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 # climax
 
-s.wait(14)
-vm.block_voice("arpeggios")
-vm.block_voice("repeated_chords")
+s.wait(4)
+vm.block_voice(arpeggios.__name__)
+vm.block_voice(repeated_chords.__name__)
 vm.set_dequeue_times([0.66, 0.66, 1.0])
-s.wait(12.5)
+s.wait(14)
 
-vm.enter_vip_mode("triads_interruption")
+vm.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
 					inst2 = pianoteq_triads_detuned, 
 					chords = chords, 
 					voice_manager = vm,
-					chord_indices = [3, 4, 3, 3, 7, 4, 9, 7, 7, 7, 4, 5, 7])
+					chord_indices = [3, 4, 3, 3, 7, 4, 9, 7, 7, 7, 4, 5, 3])
 vm.should_try_play = False
 vm.exit_vip_mode()
 s.wait_for_children_to_finish()
 s.wait(1)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------
 
 # briefly restart a few looping voices
 
@@ -185,9 +187,11 @@ s.wait(14)
 
 vm.should_try_play = False
 
-print("to be continued...")
+print("TO BE CONTINUED...")
 
 s.wait_for_children_to_finish()
 p = s.stop_transcribing()
-p.to_score(title = "Clocks (after Nancarrow)", composer = "Alex Stephenson").show()
+p.to_score(
+		title = "Clocks (after Nancarrow)", 
+		composer = "Alex Stephenson").show()
 
