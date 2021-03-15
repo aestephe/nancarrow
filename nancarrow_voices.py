@@ -7,10 +7,9 @@ import threading
 from pyalex.chord import Chord
 from pyalex.utilities import Utilities
 from pyalex.rand import *
+from pyalex.polyphony import VoiceId, ScampVoiceManager
 
 import scamp
-
-from nancarrow_managers import *
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -305,6 +304,7 @@ def triads_interruption(
 					chords, 
 					voice_manager, 
 					chord_indices, 
+					chord_lengths, 
 					play_loud_chord = True):
 
 	my_id = VoiceId(triads_interruption.__name__, 0)
@@ -324,12 +324,6 @@ def triads_interruption(
 												1.2, 0.125, "staccato")		
 				scamp.wait(1.0)
 
-			lengths = []
-			if len(chord_indices) < 6:
-				lengths = [0.25, 0.5, 0.25, 0.25, 0.25]
-			else:
-				lengths = [0.25, 0.5, 0.25, 0.5, 0.25]
-
 			i = -1
 
 			while i < len(chord_indices) - 1:
@@ -338,7 +332,7 @@ def triads_interruption(
 				selected_chord_index = chord_indices[i]
 				current_chord = chords[selected_chord_index]
 
-				length = lengths[i % len(lengths)]
+				length = chord_lengths[i % len(chord_lengths)]
 
 				midi = [p.midi_number + 24 - 1 for p in current_chord.pitches if p.overtone_class in [3, 5]]
 				midi.extend([p.midi_number + 36 - 1 for p in current_chord.pitches if p.overtone_class in [1]])

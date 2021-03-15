@@ -4,15 +4,45 @@ import sys
 import itertools
 import threading
 
-from pyalex.chord import Chord
-from pyalex.utilities import Utilities
-
 import scamp
 
-from nancarrow_managers import *
+from pyalex.chord import Chord
+from pyalex.utilities import Utilities
+from pyalex.polyphony import VoiceId, ScampVoiceManager
+
 from nancarrow_voices import *
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
+
+class LengthMultiplier:
+
+	def __init__(self, value):
+		self._value = value
+
+	def get_value(self):
+		return self._value
+
+	def clone(lm, expon):
+		return LengthMultiplier(lm.get_value() ** expon)
+
+class LengthMultiplierManager:
+
+	def __init__(self):
+		self._dict = {}
+		self._lock = threading.Lock()
+
+	def set_length_multipliers(self, dictionary):
+		with self._lock:
+			for name in dictionary:
+				self._dict[name] = dictionary[name]
+
+	def get_length_multiplier(self, name):
+		with self._lock:
+			return self._dict[name]
+
+	def get_all_length_multipliers(self):
+		with self._lock:
+			return [self._dict[key] for key in self._dict]
 
 def make_length_multiplier_manager(c = 1):
 
@@ -49,8 +79,10 @@ chords = [Chord.from_string("27.0~27.0,1,1;55.0,5,1;58.0,3,1;61.0,7,1;76.0,17,1;
 
 phrase_lengths = [1]
 
-vm = VoiceManager()
+vm = ScampVoiceManager()
 vm.set_dequeue_times([2.6])
+vm.closely_related_voices = [["arpeggios", "grace_notes"],
+							 ["arpeggios", "octaves"]]
 
 lmm = make_length_multiplier_manager()
 
@@ -80,7 +112,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_to_time(100)
+# s.fast_forward_in_beats(140)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -108,8 +140,10 @@ interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3,
 					[11, 4, 8, 8, 7, 9, 4, 2, 2, 7, 5],
 					[7, 0, 8, 5, 4, 6, 4, 9],
 					[3, 4, 7, 5, 9, 7, 7, 7],
-					[0, 3, 7, 4, 5],
-					[3, 2, 7, 6, 6]]
+					[0, 3, 7, 4, 5, 6],
+					[3, 2, 7, 6, 9, 10]]
+interruption_chord_lengths = [[0.25, 0.5, 0.25, 0.5, 0.25]] * 6
+interruption_chord_lengths.extend([[0.25, 0.5, 0.25, 0.25, 0.25]] * 2)
 i = -1
 
 # -------- params for randomized interruptions: --------------
@@ -122,7 +156,9 @@ i = -1
 # 							interruption_nbrs_chords):
 #
 
-for beats, indices in zip(pre_interruption_waits, interruption_chord_indices):
+for beats, indices, lengths in zip(pre_interruption_waits, 
+									interruption_chord_indices, 
+									interruption_chord_lengths):
 
 	i += 1
 
@@ -135,35 +171,43 @@ for beats, indices in zip(pre_interruption_waits, interruption_chord_indices):
 						inst2 = pianoteq_triads_detuned, 
 						chords = chords, 
 						voice_manager = vm,
-						chord_indices = indices)
+						chord_indices = indices,
+						chord_lengths = lengths)
 	vm.exit_vip_mode()
 
 	update_length_multipliers(lmm)
+
 	if i == 1:
 		vm.set_dequeue_times([1.6])
-	if i == 2:
+	elif i == 2:
 		vm.set_dequeue_times([1])
-	if i == 4:
+	elif i == 3:
+		vm.closely_related_dequeue_multiplier = 0.7
+	elif i == 4:
+		vm.closely_related_dequeue_multiplier = 0.5
+	elif i == 5:
 		vm.set_dequeue_times([0.66, 1.0, 0.66, 0.66, 1.0, 0.66])
 		vm.block_voice(grace_notes.__name__)
-
+	elif i == 6:
+		vm.closely_related_dequeue_multiplier = 0.35
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # climax
 
-s.wait(4)
+s.wait(12)
 vm.block_voice(arpeggios.__name__)
 vm.block_voice(repeated_chords.__name__)
 vm.set_dequeue_times([0.66, 0.66, 1.0])
-s.wait(14)
+s.wait(16)
 
 vm.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
 					inst2 = pianoteq_triads_detuned, 
 					chords = chords, 
 					voice_manager = vm,
-					chord_indices = [3, 4, 3, 3, 7, 4, 9, 7, 7, 7, 4, 5, 3])
+					chord_indices = [3, 4, 3, 3, 7, 4, 9, 7, 7, 7, 4, 5, 3],
+					chord_lengths = [0.25, 0.5, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.5, 0.25, 0.25, 0.25])
 vm.should_try_play = False
 vm.exit_vip_mode()
 s.wait_for_children_to_finish()
@@ -173,7 +217,7 @@ s.wait(1)
 
 # briefly restart a few looping voices
 
-vm = VoiceManager()
+vm = ScampVoiceManager()
 vm.set_dequeue_times([2.6])
 vm.should_try_play = True
 lmm = make_length_multiplier_manager()
