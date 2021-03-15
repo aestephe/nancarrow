@@ -7,7 +7,7 @@ import threading
 from pyalex.chord import Chord
 from pyalex.utilities import Utilities
 from pyalex.rand import *
-from pyalex.polyphony import VoiceId, ScampVoiceManager
+from pyalex.polyphony import VoiceId, QueuedVoiceManager
 
 import scamp
 

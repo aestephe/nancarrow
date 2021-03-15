@@ -8,7 +8,7 @@ import scamp
 
 from pyalex.chord import Chord
 from pyalex.utilities import Utilities
-from pyalex.polyphony import VoiceId, ScampVoiceManager
+from pyalex.polyphony import VoiceId, QueuedVoiceManager
 
 from nancarrow_voices import *
 
@@ -79,7 +79,7 @@ chords = [Chord.from_string("27.0~27.0,1,1;55.0,5,1;58.0,3,1;61.0,7,1;76.0,17,1;
 
 phrase_lengths = [1]
 
-vm = ScampVoiceManager()
+vm = QueuedVoiceManager()
 vm.set_dequeue_times([2.6])
 vm.closely_related_voices = [["arpeggios", "grace_notes"],
 							 ["arpeggios", "octaves"]]
@@ -199,7 +199,7 @@ s.wait(12)
 vm.block_voice(arpeggios.__name__)
 vm.block_voice(repeated_chords.__name__)
 vm.set_dequeue_times([0.66, 0.66, 1.0])
-s.wait(16)
+s.wait(18)
 
 vm.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
@@ -217,7 +217,7 @@ s.wait(1)
 
 # briefly restart a few looping voices
 
-vm = ScampVoiceManager()
+vm = QueuedVoiceManager()
 vm.set_dequeue_times([2.6])
 vm.should_try_play = True
 lmm = make_length_multiplier_manager()
