@@ -11,6 +11,7 @@ from pyalex.utilities import Utilities
 from pyalex.polyphony import VoiceId, QueuedVoiceManager
 
 from nancarrow_voices import *
+from nancarrow_field_voices import *
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +52,8 @@ def make_length_multiplier_manager(c = 1):
 								"arpeggios" : LengthMultiplier(6.656 * c),
 								"octaves" : LengthMultiplier(10.6496 * c),
 								"repeated_chords" : LengthMultiplier(17.03936 * c),
-								"triads" : LengthMultiplier(27.262976 * c) } )
+								"triads" : LengthMultiplier(27.262976 * c),
+								"field_grace_notes" : LengthMultiplier(4.16 * c) } )
 	return out
 
 def update_length_multipliers(lmm):
@@ -90,12 +92,13 @@ s = scamp.Session(tempo = 112)
 scamp.current_clock().synchronization_policy = "no synchronization"
 
 pianoteq_triads = s.new_midi_part("triads", midi_output_device = "to Max 1")
-pianoteq_triads_detuned = s.new_midi_part("triads_detuned", midi_output_device = "to Max 2")
 pianoteq_grace_notes = s.new_midi_part("grace_notes", midi_output_device = "to Max 1")
-pianoteq_arpeggios = s.new_midi_part("arpeggios_detuned", midi_output_device = "to Max 1")
-pianoteq_arpeggios_detuned = s.new_midi_part("arpeggios_detuned", midi_output_device = "to Max 2")
+pianoteq_arpeggios = s.new_midi_part("arpeggios", midi_output_device = "to Max 1")
 pianoteq_octaves = s.new_midi_part("octaves", midi_output_device = "to Max 1")
 pianoteq_repeated_chords = s.new_midi_part("repeated_chords", midi_output_device = "to Max 1")
+
+pianoteq_triads_detuned = s.new_midi_part("triads_detuned", midi_output_device = "to Max 2")
+
 pianoteq_field = s.new_midi_part("field", midi_output_device = "to Max 1")
 pianoteq_field_detuned = s.new_midi_part("field_detuned", midi_output_device = "to Max 2")
 
@@ -112,7 +115,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(140)
+s.fast_forward_in_beats(200)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -199,7 +202,7 @@ s.wait(12)
 vm.block_voice(arpeggios.__name__)
 vm.block_voice(repeated_chords.__name__)
 vm.set_dequeue_times([0.66, 0.66, 1.0])
-s.wait(18)
+s.wait(17)
 
 vm.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
@@ -230,12 +233,26 @@ s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths
 s.wait(14)
 
 vm.should_try_play = False
-
-print("TO BE CONTINUED...")
-
 s.wait_for_children_to_finish()
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+# field
+
+vm = QueuedVoiceManager()
+vm.set_dequeue_times([1])
+vm.should_try_play = True
+lmm = make_length_multiplier_manager()
+
+s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
+
+s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm, lmm])
+
+s.wait_forever()
+
+s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
 p = s.stop_transcribing()
 p.to_score(
 		title = "Clocks (after Nancarrow)", 
-		composer = "Alex Stephenson").show()
+		composer = "Alex Stephenson").show_xml()
 
