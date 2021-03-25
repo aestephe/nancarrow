@@ -84,11 +84,12 @@ phrase_lengths = [1]
 vm = QueuedVoiceManager()
 vm.set_dequeue_times([2.6])
 vm.closely_related_voices = [["arpeggios", "grace_notes"],
-							 ["arpeggios", "octaves"]]
+							 ["arpeggios", "octaves"],
+							 ["arpeggios", "arpeggios"]]
 
 lmm = make_length_multiplier_manager()
 
-s = scamp.Session(tempo = 112)
+s = scamp.Session(tempo = 120)
 scamp.current_clock().synchronization_policy = "no synchronization"
 
 pianoteq_triads = s.new_midi_part("triads", midi_output_device = "to Max 1")
@@ -115,7 +116,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-s.fast_forward_in_beats(200)
+# s.fast_forward_in_beats(160)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -136,7 +137,7 @@ s.wait(18)
 
 # begin waiting then firing the interruptions
 
-pre_interruption_waits = [24.2, 19.5, 13.3, 9.8, 7.3, 5.4, 4, 3]
+pre_interruption_waits = [24.2, 19.5, 13.3, 9.8, 7.3, 5.4, 4, 3, 2]
 interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3, 6],
 					[3, 2, 7, 6, 6, 4, 5, 3, 3, 7, 6, 9, 10, 8, 3],
 					[7, 0, 8, 9, 6, 6, 2, 1, 8, 7, 5, 7, 5],
@@ -144,9 +145,10 @@ interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3,
 					[7, 0, 8, 5, 4, 6, 4, 9],
 					[3, 4, 7, 5, 9, 7, 7, 7],
 					[0, 3, 7, 4, 5, 6],
-					[3, 2, 7, 6, 9, 10]]
+					[3, 2, 7, 6, 9, 10],
+					[11, 2, 4, 6, 2, 3]]
 interruption_chord_lengths = [[0.25, 0.5, 0.25, 0.5, 0.25]] * 6
-interruption_chord_lengths.extend([[0.25, 0.5, 0.25, 0.25, 0.25]] * 2)
+interruption_chord_lengths.extend([[0.25, 0.5, 0.25, 0.25, 0.25]] * 3)
 i = -1
 
 # -------- params for randomized interruptions: --------------
@@ -185,24 +187,33 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 	elif i == 2:
 		vm.set_dequeue_times([1])
 	elif i == 3:
-		vm.closely_related_dequeue_multiplier = 0.7
+		vm.closely_related_dequeue_multiplier = 0.6
 	elif i == 4:
-		vm.closely_related_dequeue_multiplier = 0.5
+		vm.closely_related_dequeue_multiplier = 0.36
 	elif i == 5:
+		vm.closely_related_dequeue_multiplier = 0.216
+	elif i == 6:
 		vm.set_dequeue_times([0.66, 1.0, 0.66, 0.66, 1.0, 0.66])
 		vm.block_voice(grace_notes.__name__)
-	elif i == 6:
-		vm.closely_related_dequeue_multiplier = 0.35
+		vm.closely_related_dequeue_multiplier = 0.13
+	elif i == 7:
+		vm.closely_related_dequeue_multiplier = 0.07
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # climax
 
-s.wait(12)
+vm.closely_related_dequeue_multiplier = 0.05
+s.wait(19.5)
 vm.block_voice(arpeggios.__name__)
 vm.block_voice(repeated_chords.__name__)
 vm.set_dequeue_times([0.66, 0.66, 1.0])
-s.wait(17)
+s.wait(15)
+
+# vm.unblock_voice(arpeggios.__name__)
+# vm.enter_vip_mode(arpeggios.__name__)
+# vm.closely_related_dequeue_multiplier = 0.0
+# s.wait(7)
 
 vm.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
@@ -220,39 +231,41 @@ s.wait(1)
 
 # briefly restart a few looping voices
 
-vm = QueuedVoiceManager()
-vm.set_dequeue_times([2.6])
-vm.should_try_play = True
+vm2 = QueuedVoiceManager()
+vm2.set_dequeue_times([2.6])
+vm2.should_try_play = True
 lmm = make_length_multiplier_manager()
 
-s.fork(grace_notes, args = [pianoteq_grace_notes, chords, phrase_lengths, vm, lmm])
+s.fork(grace_notes, args = [pianoteq_grace_notes, chords, phrase_lengths, vm2, lmm])
 s.wait(4)
-s.fork(arpeggios, args = [pianoteq_arpeggios, chords, phrase_lengths, vm, lmm])
+s.fork(arpeggios, args = [pianoteq_arpeggios, chords, phrase_lengths, vm2, lmm])
 s.wait(4)
-s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm, lmm])
+s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm2, lmm])
 s.wait(14)
 
-vm.should_try_play = False
-s.wait_for_children_to_finish()
+vm2.should_try_play = False
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # field
 
-vm = QueuedVoiceManager()
-vm.set_dequeue_times([1])
-vm.should_try_play = True
-lmm = make_length_multiplier_manager()
+# vm = QueuedVoiceManager()
+# vm.set_dequeue_times([1])
+# vm.should_try_play = True
+# lmm = make_length_multiplier_manager()
 
-s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
+# s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
 
-s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm, lmm])
+# s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm, lmm])
 
-s.wait_forever()
+# s.wait_forever()
 
-s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
+# s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
 p = s.stop_transcribing()
 p.to_score(
 		title = "Clocks (after Nancarrow)", 
-		composer = "Alex Stephenson").show_xml()
+		composer = "Alex Stephenson").show()
 
