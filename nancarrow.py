@@ -81,9 +81,9 @@ chords = [Chord.from_string("27.0~27.0,1,1;55.0,5,1;58.0,3,1;61.0,7,1;76.0,17,1;
 
 phrase_lengths = [1]
 
-vm = QueuedVoiceManager()
-vm.set_dequeue_times([2.6])
-vm.closely_related_voices = [["arpeggios", "grace_notes"],
+vm1 = QueuedVoiceManager()
+vm1.set_dequeue_times([2.6])
+vm1.closely_related_voices = [["arpeggios", "grace_notes"],
 							 ["arpeggios", "octaves"],
 							 ["arpeggios", "arpeggios"]]
 
@@ -116,21 +116,21 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(160)
+s.fast_forward_in_beats(265)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # introduce each looping voice
 
-s.fork(triads, args = [pianoteq_triads, chords, phrase_lengths, vm, lmm])
+s.fork(triads, args = [pianoteq_triads, chords, phrase_lengths, vm1, lmm])
 s.wait(4)
-s.fork(grace_notes, args = [pianoteq_grace_notes, chords, phrase_lengths, vm, lmm])
+s.fork(grace_notes, args = [pianoteq_grace_notes, chords, phrase_lengths, vm1, lmm])
 s.wait(4)
-s.fork(arpeggios, args = [pianoteq_arpeggios, chords, phrase_lengths, vm, lmm])
+s.fork(arpeggios, args = [pianoteq_arpeggios, chords, phrase_lengths, vm1, lmm])
 s.wait(4)
-s.fork(octaves, args = [pianoteq_octaves, chords, phrase_lengths, vm, lmm])
+s.fork(octaves, args = [pianoteq_octaves, chords, phrase_lengths, vm1, lmm])
 s.wait(4)
-s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm, lmm])
+s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm1, lmm])
 s.wait(18)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
@@ -169,61 +169,56 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 
 	s.wait(beats)
 
-	vm.enter_vip_mode(triads_interruption.__name__)
+	vm1.enter_vip_mode(triads_interruption.__name__)
 	print("--> " + str(i) + ": " + str(indices))
 	triads_interruption(
 						inst1 = pianoteq_triads, 
 						inst2 = pianoteq_triads_detuned, 
 						chords = chords, 
-						voice_manager = vm,
+						voice_manager = vm1,
 						chord_indices = indices,
 						chord_lengths = lengths)
-	vm.exit_vip_mode()
+	vm1.exit_vip_mode()
 
 	update_length_multipliers(lmm)
 
 	if i == 1:
-		vm.set_dequeue_times([1.6])
+		vm1.set_dequeue_times([1.6])
 	elif i == 2:
-		vm.set_dequeue_times([1])
+		vm1.set_dequeue_times([1])
 	elif i == 3:
-		vm.closely_related_dequeue_multiplier = 0.6
+		vm1.closely_related_dequeue_multiplier = 0.6
 	elif i == 4:
-		vm.closely_related_dequeue_multiplier = 0.36
+		vm1.closely_related_dequeue_multiplier = 0.36
 	elif i == 5:
-		vm.closely_related_dequeue_multiplier = 0.216
+		vm1.closely_related_dequeue_multiplier = 0.216
 	elif i == 6:
-		vm.set_dequeue_times([0.66, 1.0, 0.66, 0.66, 1.0, 0.66])
-		vm.block_voice(grace_notes.__name__)
-		vm.closely_related_dequeue_multiplier = 0.13
+		vm1.set_dequeue_times([0.66, 1.0, 0.66, 0.66, 1.0, 0.66])
+		vm1.block_voice(grace_notes.__name__)
+		vm1.closely_related_dequeue_multiplier = 0.13
 	elif i == 7:
-		vm.closely_related_dequeue_multiplier = 0.07
+		vm1.closely_related_dequeue_multiplier = 0.07
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # climax
 
-vm.closely_related_dequeue_multiplier = 0.05
+vm1.closely_related_dequeue_multiplier = 0.05
 s.wait(19.5)
-vm.block_voice(arpeggios.__name__)
-vm.block_voice(repeated_chords.__name__)
-vm.set_dequeue_times([0.66, 0.66, 1.0])
+vm1.block_voice(arpeggios.__name__)
+vm1.block_voice(repeated_chords.__name__)
+vm1.set_dequeue_times([0.66, 0.66, 1.0])
 s.wait(15)
 
-# vm.unblock_voice(arpeggios.__name__)
-# vm.enter_vip_mode(arpeggios.__name__)
-# vm.closely_related_dequeue_multiplier = 0.0
-# s.wait(7)
-
-vm.enter_vip_mode(triads_interruption.__name__)
+vm1.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
 					inst2 = pianoteq_triads_detuned, 
 					chords = chords, 
-					voice_manager = vm,
+					voice_manager = vm1,
 					chord_indices = [3, 4, 3, 3, 7, 4, 9, 7, 7, 7, 4, 5, 3],
 					chord_lengths = [0.25, 0.5, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.5, 0.25, 0.25, 0.25])
-vm.should_try_play = False
-vm.exit_vip_mode()
+vm1.should_try_play = False
+vm1.exit_vip_mode()
 s.wait_for_children_to_finish()
 s.wait(1)
 
@@ -244,23 +239,24 @@ s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths
 s.wait(14)
 
 vm2.should_try_play = False
+s.wait(1.5)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # field
 
-# vm = QueuedVoiceManager()
-# vm.set_dequeue_times([1])
-# vm.should_try_play = True
-# lmm = make_length_multiplier_manager()
+vm3 = QueuedVoiceManager()
+vm3.set_dequeue_times([1])
+vm3.should_try_play = True
+lmm = make_length_multiplier_manager()
 
-# s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
+s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
 
-# s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm, lmm])
+s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm])
 
-# s.wait_forever()
+s.wait_forever()
 
-# s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
+s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

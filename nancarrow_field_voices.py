@@ -29,6 +29,10 @@ def field_grace_notes(
 									ban_repeat_average_value = True,
 									seed_value = 0)
 
+	reversable_indices = [2, 5, 7, 11]
+	jitterable_indices = [1, 2, 4, 6, 7, 11]
+	repeatable_indices = [3, 5, 8, 9, 10]
+
 	phrase_length_index = phrase_length_index_seed - 1
 
 	while voice_manager.should_try_play:
