@@ -43,19 +43,21 @@ def field_grace_notes(
 
 				pitches = [chord.pitches[pitch_index_rg.get_average_value()], 
 						 	chord.pitches[pitch_index_rg.get_average_value()]]
+				pitches.append(pitches[1])
+				note_lengths = [0.125, 0.875, 0.125]
 
 				phrase_length_index += 1
 				mult = length_multiplier_manager.get_length_multiplier(field_grace_notes.__name__).get_value()
 				phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
 
-				for p in pitches:
+				for p, l in zip(pitches, note_lengths):
 					# 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 27
 					if p.overtone_class in [1, 3, 5, 9, 15, 17, 19, 27]:
-						inst1.play_note(p.midi_number, 0.2, 0.25)
+						inst1.play_note(p.midi_number, 0.2, l)
 					elif p.overtone_class in [7, 11, 13, 21]:
-						inst2.play_note(p.midi_number, 0.2, 0.25)
+						inst2.play_note(p.midi_number, 0.2, l)
 					elif p.overtone_class in [13]:
-						inst2.play_note(p.midi_number + 1, 0.2, 0.25)
+						inst2.play_note(p.midi_number + 1, 0.2, l)
 					phrase_length -= 0.25
 
 				voice_manager.leave_queue(my_id)

@@ -116,7 +116,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-s.fast_forward_in_beats(265)
+# s.fast_forward_in_beats(265)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -137,7 +137,7 @@ s.wait(18)
 
 # begin waiting then firing the interruptions
 
-pre_interruption_waits = [24.2, 19.5, 13.3, 9.8, 7.3, 5.4, 4, 3, 2]
+pre_interruption_waits = [24.2, 19.5, 13.3, 9.8, 7.3, 5.4, 4, 3]
 interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3, 6],
 					[3, 2, 7, 6, 6, 4, 5, 3, 3, 7, 6, 9, 10, 8, 3],
 					[7, 0, 8, 9, 6, 6, 2, 1, 8, 7, 5, 7, 5],
@@ -145,10 +145,9 @@ interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3,
 					[7, 0, 8, 5, 4, 6, 4, 9],
 					[3, 4, 7, 5, 9, 7, 7, 7],
 					[0, 3, 7, 4, 5, 6],
-					[3, 2, 7, 6, 9, 10],
-					[11, 2, 4, 6, 2, 3]]
+					[3, 2, 7, 6, 9, 10]]
 interruption_chord_lengths = [[0.25, 0.5, 0.25, 0.5, 0.25]] * 6
-interruption_chord_lengths.extend([[0.25, 0.5, 0.25, 0.25, 0.25]] * 3)
+interruption_chord_lengths.extend([[0.25, 0.5, 0.25, 0.25, 0.25]] * 2)
 i = -1
 
 # -------- params for randomized interruptions: --------------
@@ -254,7 +253,7 @@ s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
 
 s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm])
 
-s.wait_forever()
+s.wait(10)
 
 s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
 
