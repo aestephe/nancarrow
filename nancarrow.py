@@ -48,15 +48,19 @@ class LengthMultiplierManager:
 def make_length_multiplier_manager(c = 1):
 
 	out = LengthMultiplierManager()
-	out.set_length_multipliers( { "grace_notes" : LengthMultiplier(4.16 * c), 
+	out.set_length_multipliers( { 
+
+								"grace_notes" : LengthMultiplier(4.16 * c), 
 								"arpeggios" : LengthMultiplier(6.656 * c),
 								"octaves" : LengthMultiplier(10.6496 * c),
 								"repeated_chords" : LengthMultiplier(17.03936 * c),
 								"triads" : LengthMultiplier(27.262976 * c),
 
 								"field_grace_notes" : LengthMultiplier(6.656 * c),
-								"field_arpeggios" : LengthMultiplier(1.6 * 10.6496 * c),
-								"field_repeated_chords" : LengthMultiplier(1.6 * 17.03936 * c) } )
+								"field_arpeggios" : LengthMultiplier(17.03936 * c),
+								"field_repeated_chords" : LengthMultiplier(27.262976 * c) 
+
+											} )
 	return out
 
 def update_length_multipliers(lmm):
@@ -119,7 +123,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(200)
+s.fast_forward_in_beats(272)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -152,16 +156,6 @@ interruption_chord_indices = [[0, 5, 5, 9, 4, 8, 5, 3, 3, 5, 9, 6, 10, 10, 1, 3,
 interruption_chord_lengths = [[0.25, 0.5, 0.25, 0.5, 0.25]] * 6
 interruption_chord_lengths.extend([[0.25, 0.5, 0.25, 0.25, 0.25]] * 2)
 i = -1
-
-# -------- params for randomized interruptions: --------------
-#
-# interruption_chord_index_seeds = [0, 3, 7, 11, 7, 3, 0]
-# interruption_nbrs_chords = [17, 15, 13, 11, 8, 8, 5]
-#
-# for beats, index, nbr in zip(pre_interruption_waits, 
-# 							interruption_chord_index_seeds, 
-# 							interruption_nbrs_chords):
-#
 
 for beats, indices, lengths in zip(pre_interruption_waits, 
 									interruption_chord_indices, 
@@ -254,18 +248,17 @@ vm3.set_dequeue_times([1])
 vm3.should_try_play = True
 lmm = make_length_multiplier_manager()
 
-# s.tempo = 96
-
 s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm])
 s.wait(8)
 s.fork(field_arpeggios, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm, 3])
 s.wait(8)
 s.fork(field_repeated_chords, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm, 5])
 
-s.wait(60)
-vm3.should_try_play = False
+# These voices are set to finish on their own
+# (No need to tell them to do so with the voice manager)
+s.wait_for_children_to_finish()
 
-s.wait(16)
+s.wait(32)
 s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
@@ -274,4 +267,3 @@ p = s.stop_transcribing()
 p.to_score(
 		title = "Clocks (after Nancarrow)", 
 		composer = "Alex Stephenson").show()
-
