@@ -53,7 +53,10 @@ def make_length_multiplier_manager(c = 1):
 								"octaves" : LengthMultiplier(10.6496 * c),
 								"repeated_chords" : LengthMultiplier(17.03936 * c),
 								"triads" : LengthMultiplier(27.262976 * c),
-								"field_grace_notes" : LengthMultiplier(4.16 * c) } )
+
+								"field_grace_notes" : LengthMultiplier(6.656 * c),
+								"field_arpeggios" : LengthMultiplier(1.6 * 10.6496 * c),
+								"field_repeated_chords" : LengthMultiplier(1.6 * 17.03936 * c) } )
 	return out
 
 def update_length_multipliers(lmm):
@@ -116,7 +119,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(265)
+# s.fast_forward_in_beats(200)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -207,7 +210,7 @@ s.wait(19.5)
 vm1.block_voice(arpeggios.__name__)
 vm1.block_voice(repeated_chords.__name__)
 vm1.set_dequeue_times([0.66, 0.66, 1.0])
-s.wait(15)
+s.wait(19)
 
 vm1.enter_vip_mode(triads_interruption.__name__)
 triads_interruption(inst1 = pianoteq_triads, 
@@ -235,10 +238,12 @@ s.wait(4)
 s.fork(arpeggios, args = [pianoteq_arpeggios, chords, phrase_lengths, vm2, lmm])
 s.wait(4)
 s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm2, lmm])
-s.wait(14)
+s.wait(11)
 
+s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
 vm2.should_try_play = False
-s.wait(1.5)
+
+s.wait(6)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -249,12 +254,18 @@ vm3.set_dequeue_times([1])
 vm3.should_try_play = True
 lmm = make_length_multiplier_manager()
 
-s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
+# s.tempo = 96
 
 s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm])
+s.wait(8)
+s.fork(field_arpeggios, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm, 3])
+s.wait(8)
+s.fork(field_repeated_chords, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm, 5])
 
-s.wait(10)
+s.wait(60)
+vm3.should_try_play = False
 
+s.wait(16)
 s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------

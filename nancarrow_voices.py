@@ -280,8 +280,8 @@ def repeated_chords(
 			mult = length_multiplier_manager.get_length_multiplier(repeated_chords.__name__).get_value()
 			phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
 
-			midi = random.choice([[p.midi_number for p in current_chord.pitches if p.overtone_class in [7, 13]]]) 
-
+			midi = [p.midi_number for p in current_chord.pitches if p.overtone_class in [7, 13]]
+			
 			inst.play_chord(midi, 0.2, 0.875)
 			phrase_length -= 0.875
 			inst.play_chord(midi, 0.2, 0.125, "staccato")		
