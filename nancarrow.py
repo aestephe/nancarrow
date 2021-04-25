@@ -57,8 +57,9 @@ def make_length_multiplier_manager(c = 1):
 								"triads" : LengthMultiplier(27.262976 * c),
 
 								"field_grace_notes" : LengthMultiplier(6.656 * c),
-								"field_arpeggios" : LengthMultiplier(17.03936 * c),
-								"field_repeated_chords" : LengthMultiplier(27.262976 * c) 
+								"field_slow_arpeggios" : LengthMultiplier(17.03936 * c),
+								"field_repeated_chords" : LengthMultiplier(27.262976 * c),
+								"field_true_arpeggios" : LengthMultiplier(17.03936 * c) 
 
 											} )
 	return out
@@ -166,7 +167,7 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 	s.wait(beats)
 
 	vm1.enter_vip_mode(triads_interruption.__name__)
-	print("--> " + str(i) + ": " + str(indices))
+	# print("--> " + str(i) + ": " + str(indices))
 	triads_interruption(
 						inst1 = pianoteq_triads, 
 						inst2 = pianoteq_triads_detuned, 
@@ -237,7 +238,7 @@ s.wait(11)
 s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
 vm2.should_try_play = False
 
-s.wait(6)
+s.wait(4)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -248,15 +249,40 @@ vm3.set_dequeue_times([1])
 vm3.should_try_play = True
 lmm = make_length_multiplier_manager()
 
-s.fork(field_grace_notes, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm])
+s.fork(field_grace_notes, 
+		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm])
 s.wait(8)
-s.fork(field_arpeggios, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm, 3])
+s.fork(field_slow_arpeggios, 
+		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm, 3])
+s.wait(4)
+s.fork(field_true_arpeggios, 
+		args = [pianoteq_field, [chords[i] for i in [0, 6, 3, 1, 2, 4, 7]], phrase_lengths, vm3, lmm])
 s.wait(8)
-s.fork(field_repeated_chords, args = [pianoteq_field, pianoteq_field_detuned, chords[0], phrase_lengths, vm3, lmm, 5])
+s.fork(field_repeated_chords, 
+		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm, 5])
 
 # These voices are set to finish on their own
 # (No need to tell them to do so with the voice manager)
 s.wait_for_children_to_finish()
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+# conclusion
+
+pitches = [p for p in chords[0].pitches if p.overtone_class in [1, 7, 13]]
+note_lengths = [4, 0.25]
+dynamics = [0.3, 0.1]
+for l, d in zip(note_lengths, dynamics):
+	for p in pitches:
+		# 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 27
+		if p.overtone_class in [1, 3, 5, 9, 15, 17, 19, 27]:
+			pianoteq_field.play_note(p.midi_number, d, l, blocking = False)
+		elif p.overtone_class in [7, 11, 13, 21]:
+			pianoteq_field_detuned.play_note(p.midi_number, d, l, blocking = False)
+		elif p.overtone_class in [13]:
+			pianoteq_field_detuned.play_note(p.midi_number + 1, d, l, blocking = False)	
+	scamp.wait(l)
 
 s.wait(32)
 s.new_osc_part("pedal_up", 7501, "127.0.0.1").play_note(0, 0.0, 0.0)
