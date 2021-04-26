@@ -57,7 +57,7 @@ def field_grace_notes(
 					# print(pitch_index % len(chord.pitches))
 				pitches.extend(pitch_reserves)
 
-				note_lengths = [0.25, 2.25, 0.25]
+				note_lengths = [0.25, 1.25, 0.25]
 
 				phrase_length_index += 1
 				mult = length_multiplier_manager.get_length_multiplier(field_grace_notes.__name__).get_value()
@@ -105,7 +105,7 @@ def field_slow_arpeggios(
 
 	q = 0
 
-	while q < 11:
+	while q < 7:
 
 			can_play = voice_manager.request_permission(my_id)
 
@@ -117,11 +117,17 @@ def field_slow_arpeggios(
 				q += 1
 
 				pitches = []
-				for _ in range(0, random.choice([8])):
+
+				for _ in range(0, 7):
 					pitch_index += pitch_index_iterator
-					if pitch_index % len(chord.pitches) == 0:
-						pitch_index += pitch_index_iterator
+					# if pitch_index % len(chord.pitches) == 0:
+					# 	pitch_index += pitch_index_iterator
 					pitches.append(chord.pitches[pitch_index % len(chord.pitches)])
+				# if q == 9:
+				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 3])
+				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 5])
+				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 7])
+				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 11])
 
 				phrase_length_index += 1
 				mult = length_multiplier_manager.get_length_multiplier(field_slow_arpeggios.__name__).get_value()
@@ -133,12 +139,13 @@ def field_slow_arpeggios(
 
 				for p, l in zip(pitches, note_lengths):
 					# 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 27
+					midi = p.midi_number
 					if p.overtone_class in [1, 3, 5, 9, 15, 17, 19, 27]:
-						inst1.play_note(p.midi_number, 0.2, l)
+						inst1.play_note(midi, 0.2, l)
 					elif p.overtone_class in [7, 11, 13, 21]:
-						inst2.play_note(p.midi_number, 0.2, l)
+						inst2.play_note(midi, 0.2, l)
 					elif p.overtone_class in [13]:
-						inst2.play_note(p.midi_number + 1, 0.2, l)					
+						inst2.play_note(midi + 1, 0.2, l)					
 					phrase_length -= l
 
 				voice_manager.leave_queue(my_id)
@@ -173,7 +180,7 @@ def field_repeated_chords(
 
 	q = 0
 
-	while q < 6:
+	while q < 5:
 
 		can_play = voice_manager.request_permission(my_id)
 
@@ -188,7 +195,7 @@ def field_repeated_chords(
 			for i in range(0, 2):
 				pitch_index += pitch_index_iterator
 				if i == 1:
-					pitch_index += 2
+					pitch_index += 4
 				pitches.append(chord.pitches[pitch_index % len(chord.pitches)])
 
 			phrase_length_index += 1
@@ -227,12 +234,13 @@ def field_true_arpeggios(
 			phrase_lengths, 
 			voice_manager, 
 			length_multiplier_manager, 
+			tempo_factor,
 			chord_index_seed = 0, 
 			phrase_length_index_seed = 0):
 
 	my_id = VoiceId(field_true_arpeggios.__name__, threading.current_thread().ident)
 
-	chord_index_iterator = 1 # NB!
+	chord_index_iterator = 1
 
 	chord_index = chord_index_seed - chord_index_iterator
 	phrase_length_index = phrase_length_index_seed - 1
@@ -240,23 +248,25 @@ def field_true_arpeggios(
 	reversable_indices = [7, 8, 1, 10]
 	jitterable_indices = [7, 2, 1, 5, 8]
 
-	q = -1
+	q = 0
 
-	while q < len(chords) - 1:
+	while q < 6:
 
 			can_play = voice_manager.request_permission(my_id)
 
 			if can_play:
 
 				q += 1
-				current_chord = chords[q]
+				current_chord = chords[0]
 
 				phrase_length_index += 1
 				mult = length_multiplier_manager.get_length_multiplier(field_true_arpeggios.__name__).get_value()
 				phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
 
 				midi = [p.midi_number for p in current_chord.pitches if 
-						(p.is_harmonic_tone and p.midi_number >= 67 and p.overtone_class not in [27])]
+						(p.is_harmonic_tone and p.midi_number >= 67 and p.overtone_class not in [27])][-(8-q):]
+
+				# print(len(midi))
 
 				if (chord_index % len(chords) in reversable_indices):
 					midi = sorted(midi, reverse = True)
@@ -268,21 +278,24 @@ def field_true_arpeggios(
 					properties = ["staccato"]
 					if i == 0:
 						properties.append("text: " + str(chord_index % len(chords)))
-					inst.play_note(midi[i], 0.2, 0.125, properties = properties)
-					phrase_length -= 0.125
+					inst.play_note(midi[i], 0.2, 0.125 * tempo_factor, properties = properties)
+					phrase_length -= 0.125 * tempo_factor
 
 					if i == 3 and chord_index % len(chords) in jitterable_indices:
-						inst.play_note(midi[i - 1], 0.2, 0.125, "staccato")
-						phrase_length -= 0.125
-						inst.play_note(midi[i], 0.2, 0.125, "staccato")
-						phrase_length -= 0.125
+						inst.play_note(midi[i - 1], 0.2, 0.125 * tempo_factor, "staccato")
+						phrase_length -= 0.125 * tempo_factor
+						inst.play_note(midi[i], 0.2, 0.125 * tempo_factor, "staccato")
+						phrase_length -= 0.125 * tempo_factor
 
-						inst.play_note(midi[i - 1], 0.2, 0.125, "staccato")
-						phrase_length -= 0.125
-						inst.play_note(midi[i], 0.2, 0.125, "staccato")
-						phrase_length -= 0.125
+						inst.play_note(midi[i - 1], 0.2, 0.125 * tempo_factor, "staccato")
+						phrase_length -= 0.125 * tempo_factor
+						inst.play_note(midi[i], 0.2, 0.125 * tempo_factor, "staccato")
+						phrase_length -= 0.125 * tempo_factor
 
 						jitter_count += 1
+
+				scamp.wait(1.25)
+				inst.play_note(midi[-1], 0.2, 0.125)
 
 				voice_manager.leave_queue(my_id)
 

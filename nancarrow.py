@@ -124,7 +124,9 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-s.fast_forward_in_beats(272)
+# s.fast_forward_in_beats(272) 
+# 272 - last gesture before slow section
+# 430 - last slow arpeggio
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -238,11 +240,15 @@ s.wait(11)
 s.new_osc_part("pedal_down", 7502, "127.0.0.1").play_note(0, 0.0, 0.0)
 vm2.should_try_play = False
 
-s.wait(4)
+s.wait(6)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # field
+
+field_tempo_factor = 1.0
+
+s.tempo = s.tempo * field_tempo_factor
 
 vm3 = QueuedVoiceManager()
 vm3.set_dequeue_times([1])
@@ -250,27 +256,30 @@ vm3.should_try_play = True
 lmm = make_length_multiplier_manager()
 
 s.fork(field_grace_notes, 
-		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm])
+		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm, 0])
 s.wait(8)
 s.fork(field_slow_arpeggios, 
 		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm, 3])
 s.wait(4)
 s.fork(field_true_arpeggios, 
-		args = [pianoteq_field, [chords[i] for i in [0, 6, 3, 1, 2, 4, 7]], phrase_lengths, vm3, lmm])
+		args = [pianoteq_field, [chords[i] for i in [3]], phrase_lengths, vm3, lmm, field_tempo_factor])
 s.wait(8)
 s.fork(field_repeated_chords, 
 		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm3, lmm, 5])
 
-# These voices are set to finish on their own
-# (No need to tell them to do so with the voice manager)
 s.wait_for_children_to_finish()
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # conclusion
 
-pitches = [p for p in chords[0].pitches if p.overtone_class in [1, 7, 13]]
+vm3.should_try_play = True
+s.fork(arpeggios, args = [pianoteq_arpeggios, [chords[0]], phrase_lengths, vm3, lmm])
+vm3.should_try_play = False
+
+s.wait(4)
+
+pitches = [p for p in chords[0].pitches if p.overtone_class in [1, 7]]
 note_lengths = [4, 0.25]
 dynamics = [0.3, 0.1]
 for l, d in zip(note_lengths, dynamics):
