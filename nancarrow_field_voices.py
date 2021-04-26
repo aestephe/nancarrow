@@ -105,7 +105,7 @@ def field_slow_arpeggios(
 
 	q = 0
 
-	while q < 7:
+	while q < 6:
 
 			can_play = voice_manager.request_permission(my_id)
 
@@ -123,11 +123,11 @@ def field_slow_arpeggios(
 					# if pitch_index % len(chord.pitches) == 0:
 					# 	pitch_index += pitch_index_iterator
 					pitches.append(chord.pitches[pitch_index % len(chord.pitches)])
-				# if q == 9:
-				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 3])
-				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 5])
-				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 7])
-				# 	pitches.extend([p for p in chord.pitches if p.overtone_class == 11])
+				if q == 6:
+					pitches.extend([p for p in chord.pitches if p.overtone_class == 3])
+					pitches.extend([p for p in chord.pitches if p.overtone_class == 1])
+					# pitches.extend([p for p in chord.pitches if p.overtone_class == 7])
+					# pitches.extend([p for p in chord.pitches if p.overtone_class == 11])
 
 				phrase_length_index += 1
 				mult = length_multiplier_manager.get_length_multiplier(field_slow_arpeggios.__name__).get_value()
@@ -202,7 +202,7 @@ def field_repeated_chords(
 			mult = length_multiplier_manager.get_length_multiplier(field_repeated_chords.__name__).get_value()
 			phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
 
-			note_lengths = [4, 0.25]
+			note_lengths = [5, 0.25]
 			dynamics = [0.3, 0.1]
 
 			for l, d in zip(note_lengths, dynamics):
@@ -305,3 +305,105 @@ def field_true_arpeggios(
 			else:
 
 				scamp.wait(0.1)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+def field_octaves(
+			inst, 
+			chords, 
+			phrase_lengths, 
+			voice_manager, 
+			length_multiplier_manager, 
+			pedal_up,
+			pedal_down,
+			chord_index_seed = 0, 
+			phrase_length_index_seed = 0):
+
+	my_id = VoiceId(field_octaves.__name__, threading.current_thread().ident)
+
+	chord_index_iterator = 1
+
+	chord_index = chord_index_seed - chord_index_iterator
+	phrase_length_index = phrase_length_index_seed - 1
+
+	q = 0
+
+	while q < 5:
+
+		can_play = voice_manager.request_permission(my_id)
+
+		if can_play:
+
+			q += 1
+			
+			chord_index += chord_index_iterator
+			current_chord = chords[chord_index % len(chords)]
+
+			phrase_length_index += 1
+			mult = length_multiplier_manager.get_length_multiplier(field_octaves.__name__).get_value()
+			phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
+
+			p = [p for p in current_chord.pitches if p.overtone_class == 27][0]
+			pedal_up.play_note(0, 0.0, 0.0)
+			scamp.wait(0.1)
+			pedal_down.play_note(0, 0.0, 0.0)		
+			inst.play_chord([p.midi_number, p.midi_number - 24, p.midi_number - 36, p.midi_number + 12],
+										0.4, 0.125, "staccato")
+			phrase_length -= 0.125
+
+			voice_manager.leave_queue(my_id)
+
+			if voice_manager.should_try_play:
+				scamp.wait(phrase_length)
+
+		else:
+
+			scamp.wait(0.1)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+def field_triads(
+		inst, 
+		chords, 
+		phrase_lengths, 
+		voice_manager, 
+		length_multiplier_manager, 
+		chord_index_seed = 0, 
+		phrase_length_index_seed = 0):
+
+	my_id = VoiceId(field_triads.__name__, threading.current_thread().ident)
+
+	chord_index_iterator = 1
+
+	chord_index = chord_index_seed - chord_index_iterator 
+	phrase_length_index = phrase_length_index_seed - 1
+
+	q = 0
+
+	while q < 5:
+
+		can_play = voice_manager.request_permission(my_id)
+
+		if can_play:
+
+			q += 1
+
+			chord_index += chord_index_iterator  
+			current_chord = chords[chord_index % len(chords)]
+
+			phrase_length_index += 1
+			mult = length_multiplier_manager.get_length_multiplier(field_triads.__name__).get_value()
+			phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
+
+			inst.play_chord([p.midi_number for p in current_chord.pitches if p.overtone_class in [1, 3, 5]], 
+												0.2, 0.125, "staccato")		
+			phrase_length -= 0.125
+
+			voice_manager.leave_queue(my_id)
+
+			if voice_manager.should_try_play:
+				scamp.wait(phrase_length)
+
+		else:
+
+			scamp.wait(0.1)
