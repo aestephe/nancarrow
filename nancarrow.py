@@ -241,7 +241,7 @@ s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths
 s.wait(11)
 
 vm.should_try_play = False
-s.wait(4)
+s.wait(6)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -284,11 +284,15 @@ s.wait_for_children_to_finish()
 
 s.fork(arpeggios, args = [pianoteq_arpeggios, [chords[0]], phrase_lengths, vm, lmm])
 vm.should_try_play = False
+s.wait_for_children_to_finish()
+
+s.wait(1.25)
+pianoteq_arpeggios.play_note(95, 0.2, 0.125)
 
 s.wait(4)
 
 pitches = [p for p in chords[0].pitches if p.overtone_class in [1, 3, 7]]
-note_lengths = [4, 0.25]
+note_lengths = [5, 0.25]
 dynamics = [0.3, 0.1]
 for l, d in zip(note_lengths, dynamics):
 	for p in pitches:
