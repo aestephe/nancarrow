@@ -129,7 +129,6 @@ s.wait(1)
 s.start_transcribing()
 # s.fast_forward_in_beats(272) 
 # 272 - last gesture before slow section
-# 430 - last slow arpeggio
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -241,7 +240,7 @@ s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths
 s.wait(11)
 
 vm.should_try_play = False
-s.wait(6)
+s.wait(4)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -291,7 +290,9 @@ pianoteq_arpeggios.play_note(95, 0.2, 0.125)
 
 s.wait(4)
 
-pitches = [p for p in chords[0].pitches if p.overtone_class in [1, 3, 7]]
+pianoteq_field.play_note(chords[0].pitches[0].midi_number, 0.3, 1.66)
+
+pitches = [p for p in chords[0].pitches if p.overtone_class in [3, 7]]
 note_lengths = [5, 0.25]
 dynamics = [0.3, 0.1]
 for l, d in zip(note_lengths, dynamics):
