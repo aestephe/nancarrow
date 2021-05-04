@@ -292,9 +292,9 @@ s.wait(4)
 
 pianoteq_field.play_note(chords[0].pitches[0].midi_number, 0.3, 1.66)
 
-pitches = [p for p in chords[0].pitches if p.overtone_class in [3, 7]]
+pitches = [p for p in chords[0].pitches if p.overtone_class in [3, 5]]
 note_lengths = [5, 0.25]
-dynamics = [0.3, 0.1]
+dynamics = [0.2, 0.07]
 for l, d in zip(note_lengths, dynamics):
 	for p in pitches:
 		# 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 27
