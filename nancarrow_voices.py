@@ -43,7 +43,7 @@ def triads(
 			phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
 
 			inst.play_chord([p.midi_number for p in current_chord.pitches if p.overtone_class in [1, 3, 5]], 
-												1, 0.125, "staccato")		
+												0.8, 0.125, "staccato")		
 			phrase_length -= 0.125
 
 			voice_manager.leave_queue(my_id)
@@ -237,7 +237,7 @@ def octaves(
 
 			p = [p for p in current_chord.pitches if p.overtone_class == 27][0]
 			inst.play_chord([p.midi_number, p.midi_number - 24, p.midi_number - 36, p.midi_number + 12],
-										1, 0.125, "staccato")
+										0.8, 0.125, "staccato")
 			phrase_length -= 0.125
 
 			voice_manager.leave_queue(my_id)
@@ -321,7 +321,7 @@ def triads_interruption(
 				and not (triads.__name__ in voice_manager.previous_voices) 
 				and not (voice_manager.previous_voices[1] == octaves.__name__)):
 				inst1.play_chord([p.midi_number for p in chords[chord_indices[0]].pitches if p.overtone_class in [1, 3, 5]], 
-												1, 0.125, "staccato")		
+												0.8, 0.125, "staccato")		
 				scamp.wait(1.0)
 
 			i = -1
