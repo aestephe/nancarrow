@@ -121,7 +121,7 @@ resetter = s.new_osc_part("resetter", 7500, "127.0.0.1")
 for m in range(21, 109):
 	resetter.play_note(m, 0., 0.01)
 pedal_up = s.new_osc_part("pedal_up", 7501, "127.0.0.1")
-pedal_up.play_note(0, 0.0, 0.0)
+pedal_up.play_note(0, 0.0, 0.01)
 s.wait(1)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
@@ -255,7 +255,7 @@ vm.should_try_play = True
 lmm = make_length_multiplier_manager()
 
 pedal_down = s.new_osc_part("pedal_down", 7502, "127.0.0.1")
-pedal_down.play_note(0, 0.0, 0.0)
+pedal_down.play_note(0, 0.0, 0.01)
 
 s.fork(field_grace_notes, 
 		args = [pianoteq_field, pianoteq_field_detuned, [chords[i] for i in [0]], phrase_lengths, vm, lmm, 0])
@@ -307,7 +307,7 @@ for l, d in zip(note_lengths, dynamics):
 	scamp.wait(l)
 
 s.wait(32)
-pedal_up.play_note(0, 0.0, 0.0)
+pedal_up.play_note(0, 0.0, 0.01)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
