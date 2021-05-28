@@ -7,43 +7,13 @@ import threading
 import scamp
 
 from pyalex.chord import Chord
-from pyalex.utilities import Utilities
+from pyalex.utilities import Utilities, LengthMultiplier, LengthMultiplierManager
 from pyalex.polyphony import VoiceId, QueuedVoiceManager
 
 from nancarrow_voices import *
 from nancarrow_field_voices import *
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
-
-class LengthMultiplier:
-
-	def __init__(self, value):
-		self._value = value
-
-	def get_value(self):
-		return self._value
-
-	def clone(lm, expon):
-		return LengthMultiplier(lm.get_value() ** expon)
-
-class LengthMultiplierManager:
-
-	def __init__(self):
-		self._dict = {}
-		self._lock = threading.Lock()
-
-	def set_length_multipliers(self, dictionary):
-		with self._lock:
-			for name in dictionary:
-				self._dict[name] = dictionary[name]
-
-	def get_length_multiplier(self, name):
-		with self._lock:
-			return self._dict[name]
-
-	def get_all_length_multipliers(self):
-		with self._lock:
-			return [self._dict[key] for key in self._dict]
 
 def make_length_multiplier_manager(c = 1):
 
