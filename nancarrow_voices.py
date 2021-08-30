@@ -212,6 +212,7 @@ def octaves(
 			phrase_lengths, 
 			voice_manager, 
 			length_multiplier_manager, 
+			misc_wrapper,
 			chord_index_seed = 0, 
 			phrase_length_index_seed = 0):
 
@@ -236,7 +237,10 @@ def octaves(
 			phrase_length = phrase_lengths[phrase_length_index % len(phrase_lengths)] * mult
 
 			p = [p for p in current_chord.pitches if p.overtone_class == 27][0]
-			inst.play_chord([p.midi_number, p.midi_number - 24, p.midi_number - 36, p.midi_number + 12],
+			midi_to_play = [p.midi_number, p.midi_number - 24]
+			if not misc_wrapper.should_ban_bass_octaves:
+				midi_to_play.extend([p.midi_number - 24, p.midi_number - 36])
+			inst.play_chord(midi_to_play,
 										0.8, 0.125, "staccato")
 			phrase_length -= 0.125
 

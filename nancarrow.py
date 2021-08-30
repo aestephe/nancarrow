@@ -13,6 +13,11 @@ from pyalex.polyphony import VoiceId, QueuedVoiceManager
 from nancarrow_voices import *
 from nancarrow_field_voices import *
 
+class MiscWrapper:
+
+	def __init__(self):
+		self.should_ban_bass_octaves = False
+
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 def make_length_multiplier_manager(c = 1):
@@ -97,12 +102,14 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(500) 
+s.fast_forward_in_beats(120) 
 # 272 - last gesture before slow section
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 # introduce each looping voice
+
+misc = MiscWrapper()
 
 s.fork(triads, args = [pianoteq_triads, chords, phrase_lengths, vm1, lmm])
 s.wait(4)
@@ -110,7 +117,7 @@ s.fork(grace_notes, args = [pianoteq_grace_notes, chords, phrase_lengths, vm1, l
 s.wait(4)
 s.fork(arpeggios, args = [pianoteq_arpeggios, chords, phrase_lengths, vm1, lmm])
 s.wait(4)
-s.fork(octaves, args = [pianoteq_octaves, chords, phrase_lengths, vm1, lmm])
+s.fork(octaves, args = [pianoteq_octaves, chords, phrase_lengths, vm1, lmm, misc])
 s.wait(4)
 s.fork(repeated_chords, args = [pianoteq_repeated_chords, chords, phrase_lengths, vm1, lmm])
 s.wait(18)
@@ -142,6 +149,9 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 
 	vm1.enter_vip_mode(triads_interruption.__name__)
 	# print("--> " + str(i) + ": " + str(indices))
+
+	print(i)
+
 	triads_interruption(
 						inst1 = pianoteq_triads, 
 						inst2 = pianoteq_triads_detuned, 
@@ -169,6 +179,7 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 		vm1.closely_related_dequeue_multiplier = 0.13
 	elif i == 7:
 		vm1.closely_related_dequeue_multiplier = 0.07
+		# misc.should_ban_bass_octaves = True
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
