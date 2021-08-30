@@ -10,8 +10,8 @@ from pyalex.chord import Chord
 from pyalex.utilities import Utilities, LengthMultiplier, LengthMultiplierManager
 from pyalex.polyphony import VoiceId, QueuedVoiceManager
 
-from nancarrow_voices import *
-from nancarrow_field_voices import *
+from nancarrow_voices_quantized import *
+from nancarrow_field_voices_quantized import *
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,6 +66,7 @@ vm1.set_dequeue_times([2.6])
 vm1.closely_related_voices = [["arpeggios", "grace_notes"],
 							 ["arpeggios", "octaves"],
 							 ["arpeggios", "arpeggios"]]
+vm1.time_quantization_value = 1/8
 
 lmm = make_length_multiplier_manager()
 
@@ -97,7 +98,7 @@ s.wait(1)
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 s.start_transcribing()
-# s.fast_forward_in_beats(500) 
+s.fast_forward_in_beats(500) 
 # 272 - last gesture before slow section
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,7 +139,7 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 
 	i += 1
 
-	s.wait(beats)
+	s.wait(Utilities.quantize(beats, 0.125))
 
 	vm1.enter_vip_mode(triads_interruption.__name__)
 	# print("--> " + str(i) + ": " + str(indices))
@@ -148,7 +149,7 @@ for beats, indices, lengths in zip(pre_interruption_waits,
 						chords = chords, 
 						voice_manager = vm1,
 						chord_indices = indices,
-						chord_lengths = lengths)
+						chord_lengths = [Utilities.quantize(l, 0.125) for l in lengths])
 	vm1.exit_vip_mode()
 
 	update_length_multipliers(lmm)
